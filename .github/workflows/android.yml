@@ -24,6 +24,11 @@ jobs:
       run: chmod +x gradlew
     - name: jacoco code coverage report
       run: ./gradlew clean jacocoTestReport
+    - name: Upload report
+      uses: actions/upload-artifact@v3
+      with:
+        name: reportFile
+        path: app/build/jacoco/jacocoTestReport
     - name: Build with Gradle
       run: ./gradlew build
     - name: Build debug APK
@@ -31,9 +36,6 @@ jobs:
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
-          name: app
+          name: ApkFile
           path: app/build/outputs/apk/debug/app-debug.apk
-    - name: Download the APK
-      uses: actions/download-artifact@v3
-      with:
-          name: downloading done
+
