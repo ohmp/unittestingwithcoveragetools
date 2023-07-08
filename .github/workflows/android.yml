@@ -34,6 +34,6 @@ jobs:
           name: app
           path: app/build/outputs/apk/debug/app-debug.apk
     - name: Download the APK
-        uses: actions/download-artifact@v3
-        with:
+      uses: actions/download-artifact@v3
+      with:
           name: downloading done
