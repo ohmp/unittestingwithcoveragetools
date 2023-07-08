@@ -2,6 +2,122 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
+apply plugin: 'jacoco'
+
+
+jacoco {
+    toolVersion = "0.8.7"
+    reportsDirectory.set(layout.buildDirectory.dir("jacoco"))
+    //reportsDir = file("$buildDir/reports/jacoco/")
+
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
+
+
+
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest' /*, 'createDebugCoverageReport'*/]) {
+
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports"
+
+    reports {
+        csv.enabled false
+        html.enabled true
+        xml.enabled false
+       // html.destination file("${buildDir}/reports/jacoco/html/androidUnitTest")
+       // html.stylesheetPath 'jacoco-custom.css' // Custom CSS for report beautification
+    }
+
+
+    def fileFilter = ['jdk.internal.*','**/R.class',
+                      '**/R$*.class',
+                      '**/R.styleable',
+                      '**/BuildConfig.*',
+                      '**/Manifest*.*',
+                      '**/*Test*.*',
+                      'android/**/*.*',
+                      '**/androidx/**',
+                      '**/androidx/**/*.class',
+                      'androidx/**/*.*',
+                      'src//java/com/ohmp/unittestcases/MainActivity.class',
+                      '**/MainActivity.*',"**/generated/**", "**/other-excluded/**"
+    ]
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/compile_app_classes_jar/debug",excludes : fileFilter)   //, excludes: fileFilter
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+   // sourceDirectories.setFrom(files([mainSrc]))
+    classDirectories.setFrom(files([debugTree]))
+
+//    afterEvaluate {
+//        print(getClassDirectories().+"om prakash line 2")
+//        getClassDirectories().setFrom(classDirectories.files.collect {
+//            fileTree(dir: it, exclude: fileFilter)
+//        })
+//    }
+
+    executionData.setFrom(fileTree(dir: "$buildDir", includes: [
+            "jacoco/testDebugUnitTest.exec"
+            //"outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+            //, "outputs/code-coverage/connected/*coverage.ec"
+    ]))
+
+
+
+}
+
+
+task jacocoTestCoverageVerification(type: JacocoCoverageVerification, dependsOn: 'jacocoTestReport') {
+
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports"
+
+    violationRules {
+        failOnViolation = true
+        rule {
+
+            rule {
+                limit {
+                    minimum = 0.8
+                }
+            }
+
+            rule {
+                enabled = true
+                element = 'CLASS'
+                includes = ['org.gradle.*']
+
+                limit {
+                    counter = 'LINE'
+                    value = 'TOTALCOUNT'
+                    maximum = 0.3
+                }
+            }
+
+//            rule {
+//                limit {
+//                    counter = 'LINE'
+//                    minimum = 1
+//                }
+//                limit {
+//                    counter = 'BRANCH'
+//                    minimum = 1
+//                }
+//                limit {
+//                    counter = 'COMPLEXITY'
+//                    minimum = 1
+//                }
+//            }
+        }
+    }
+}
+
+task getCoverage(type: Exec, dependsOn: 'jacocoTestCoverageVerification') {
+    group = "Reporting"
+    commandLine "open", "$buildDir/jacoco/jacocoTestReport/html/index.html"
+}
 
 android {
     namespace 'com.ohmp.unittestcases'
@@ -22,6 +138,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+              testCoverageEnabled = false
+            //  enableUnitTestCoverage true
+
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -30,7 +151,21 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    testOptions {
+        unitTests.all {
+            jacoco {
+                // Enable JaCoCo for unit tests
+                enabled = true
+                includeNoLocationClasses = false // Include classes with no source file location
+            }
+        }
+    }
 }
+
+
+
+
 
 dependencies {
 
@@ -43,5 +178,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
     testImplementation 'org.mockito:mockito-core:2.19.0'
+//    testImplementation "org.jacoco:org.jacoco.agent:0.8.4"
 
 }
