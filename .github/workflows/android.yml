@@ -1,33 +1,33 @@
 name: Android CI
 
 on:
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-          - info
-          - warning
-          - debug
-      print_tags:
-        description: 'True to print to STDOUT'
-        required: false
-        type: boolean
-      tags:
-        description: 'Test scenario tags'
-        required: false
-        type: string
-      environment:
-        description: 'Environment to run tests against'
-        type: environment
-        required: false
-#  push:
-#    branches: [ "main" ]
-#  pull_request:
-#    branches: [ "main" ]
+#  workflow_dispatch:
+#    inputs:
+#      logLevel:
+#        description: 'Log level'
+#        required: true
+#        default: 'warning'
+#        type: choice
+#        options:
+#          - info
+#          - warning
+#          - debug
+#      print_tags:
+#        description: 'True to print to STDOUT'
+#        required: false
+#        type: boolean
+#      tags:
+#        description: 'Test scenario tags'
+#        required: false
+#        type: string
+#      environment:
+#        description: 'Environment to run tests against'
+#        type: environment
+#        required: false
+    push:
+      branches: [ "main" ]
+    pull_request:
+      branches: [ "main" ]
 
 jobs:
   build:
@@ -45,6 +45,8 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: lint check.gradle
+      run: ./gradlew check
     - name: jacoco code coverage report
       run: ./gradlew clean jacocoTestReport
     - name: Upload report
